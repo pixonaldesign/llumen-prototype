@@ -17,6 +17,15 @@
             min-height: calc(100vh - var(--ll-app-header-height));
         }
 
+        body.index-idea-briefings-expanded {
+            overflow: hidden;
+        }
+
+        #index-idea-shell .ll-app-header__right {
+            gap: calc(var(--spacing) * 3);
+        }
+        
+
         .index-idea-sidebar-shell {
             position: sticky;
             top: 0;
@@ -26,16 +35,6 @@
             flex: 0 0 0;
             overflow: hidden;
             transition: width 0.25s ease, flex-basis 0.25s ease;
-        }
-
-        .index-idea-sidebar-shell.is-open {
-            width: 16rem;
-            flex-basis: 16rem;
-        }
-
-        .index-idea-sidebar-shell.is-open.is-compact {
-            width: 4rem;
-            flex-basis: 4rem;
         }
 
         .index-idea-sidebar-shell--ai.is-open {
@@ -51,6 +50,54 @@
             padding: 0 !important;
         }
 
+        .index-idea-sidebar-shell--briefings .index-idea-sidebar-container {
+            width: 4.75rem;
+            min-width: 4.75rem;
+            position: absolute;
+            left: 0;
+            top: 0;
+            overflow: hidden;
+            border-right-color: var(--ll-color-divider);
+            border-right-width: 1px;
+            border-right-style: solid;
+            background-color: var(--ll-bg-neutral-subtle);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            transition: width 0.25s ease, min-width 0.25s ease;
+        }
+
+        .index-idea-sidebar-shell--briefings {
+            width: 4.75rem;
+            flex-basis: 4.75rem;
+            overflow: visible;
+            z-index: 40;
+        }
+
+        .index-idea-briefings-backdrop {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            z-index: 35;
+        }
+
+        .index-idea-briefings-backdrop.is-visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .index-idea-sidebar-shell--briefings.is-expanded .index-idea-sidebar-container {
+            width: 24rem;
+            min-width: 24rem;
+        }
+
+        .index-idea-sidebar-shell--ai .index-idea-sidebar-container {
+            width: 22rem;
+            min-width: 22rem;
+        }
+
         .index-idea-sidebar {
             display: flex;
             flex-direction: column;
@@ -60,6 +107,15 @@
             border-radius: 0;
             border-top: 0;
             padding: 0;
+        }
+
+        .index-idea-sidebar-shell--briefings .index-idea-sidebar {
+            width: 24rem;
+            min-width: 24rem;
+            border: none;
+            background-color: transparent;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
         }
 
         .index-idea-sidebar--chat {
@@ -83,14 +139,26 @@
             flex: 1 1 auto;
         }
 
-        .index-idea-sidebar-shell.is-compact .index-idea-sidebar__title {
+        .index-idea-sidebar-shell--briefings .index-idea-sidebar__header {
+            width: 4.75rem;
+            justify-content: center;
+            padding-inline: 0;
+            flex-shrink: 0;
+        }
+
+        .index-idea-sidebar-shell--briefings .index-idea-sidebar__title {
             display: none;
         }
 
-        .index-idea-sidebar-shell.is-compact .index-idea-sidebar__header {
-            justify-content: center;
-            padding-left: 0.75rem;
-            padding-right: 0.75rem;
+        .index-idea-sidebar-shell--briefings.is-expanded .index-idea-sidebar__header {
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+            padding-inline: calc(var(--spacing) * 4);
+        }
+
+        .index-idea-sidebar-shell--briefings.is-expanded .index-idea-sidebar__title {
+            display: block;
         }
 
         .index-idea-briefings-list {
@@ -102,24 +170,24 @@
             padding-inline: calc(var(--spacing) * 4);
         }
 
-        .index-idea-sidebar-shell.is-compact .index-idea-briefings-list .ll-list__item-trigger {
-            padding: 0.5rem;
+        .index-idea-sidebar-shell--briefings .index-idea-briefings-list .ll-list__item-content {
+            justify-content: flex-start;
         }
 
-        .index-idea-sidebar-shell.is-compact .index-idea-briefings-list .ll-list__item-content {
-            justify-content: center;
+        .index-idea-sidebar-shell--briefings.is-expanded .index-idea-briefings-list .ll-list__item-content {
+            justify-content: flex-start;
         }
 
-        .index-idea-sidebar-shell.is-compact .index-idea-briefings-list .ll-list__item-main {
+        .index-idea-sidebar-shell--briefings .index-idea-briefings-list .ll-list__item-main {
             display: none;
         }
 
-        .index-idea-sidebar-shell.is-compact .index-idea-briefing-thumb {
-            width: 2.5rem;
+        .index-idea-sidebar-shell--briefings.is-expanded .index-idea-briefings-list .ll-list__item-main {
+            display: flex;
         }
 
         .index-idea-briefing-thumb {
-            width: 3rem;
+            width: 2.75rem;
             border-radius: 0.5rem;
             flex-shrink: 0;
         }
@@ -134,7 +202,7 @@
         .index-idea-briefing-type {
             font-size: 0.75rem;
             line-height: 1rem;
-            font-weight: 600;
+            font-weight: 500;
         }
 
         #index-ai-chat-host {
@@ -144,6 +212,9 @@
         }
 
         #index-ai-chat-host #ai-chat-window.chat-window {
+            display: flex;
+            opacity: 1;
+            transition: none;
             position: static;
             inset: auto;
             width: 100%;
@@ -185,6 +256,18 @@
         #index-ai-chat-host #ai-chat-window .chat-content-wrapper {
             width: 100%;
             min-width: 0;
+            height: 100%;
+            min-height: 0;
+        }
+
+        #index-ai-chat-host #ai-chat-window #chat-messages {
+            flex: 1 1 auto;
+            min-height: 0;
+        }
+
+        #index-ai-chat-host #ai-chat-window .send-message-container {
+            margin-top: auto;
+            flex-shrink: 0;
         }
 
         #index-ai-chat-host #ai-chat-window.has-interactive-panel .chat-content-wrapper {
@@ -197,24 +280,20 @@
 <body>
     <div class="ll-page-container">
         <div id="index-idea-shell" class="ll-page-layout">
-            <aside id="index-briefings-sidebar-shell" class="index-idea-sidebar-shell is-open" aria-hidden="false">
+            <aside id="index-briefings-sidebar-shell" class="index-idea-sidebar-shell index-idea-sidebar-shell--briefings" aria-hidden="false">
                 <div class="ll-app-sidebar-container ll-app-sidebar-container-left index-idea-sidebar-container">
                     <section class="ll-sidebar ll-sidebar--left index-idea-sidebar">
                         <div class="index-idea-sidebar__header">
                             <h2 class="ll-section-heading index-idea-sidebar__title">Briefings</h2>
-                            <button
-                                type="button"
-                                id="index-briefings-sidebar-toggle"
-                                class="ll-icon-btn ll-icon-btn--circle ll-icon-btn--outline"
-                                aria-label="Compact Latest Briefings sidebar"
-                                aria-pressed="false">
-                                <span class="material-symbols-outlined ll-icon-btn__icon">vertical_split</span>
+                            <button type="button" id="index-briefings-sidebar-toggle" class="ll-icon-btn ll-icon-btn--sm" aria-label="Toggle Briefings sidebar" aria-pressed="false">
+                                <span class="material-symbols-outlined ll-icon-btn__icon" aria-hidden="true">notes</span>
                             </button>
                         </div>
                         <nav id="index-briefings-list-root" class="ll-list index-idea-briefings-list" aria-label="Latest briefings"></nav>
                     </section>
                 </div>
             </aside>
+            <div id="index-briefings-backdrop" class="index-idea-briefings-backdrop" aria-hidden="true"></div>
 
             <div class="ll-page-content-outer">
                 <header class="ll-header ll-app-header" data-ll-app-header-host data-ll-app-header-skip-auto="true"></header>
@@ -522,7 +601,6 @@
             }
         }
 
-        closeChatButton.addEventListener('click', toggleChatWindowVisibility);
         closeInteractivePanelButton.addEventListener('click', () => toggleInteractivePanel('hide'));
 
         function addChatMessage(message, sender) {
@@ -745,30 +823,28 @@
                     ` : ''}
                     <div class="ll-app-header__inner ll-app-header__right">
                         ${customContentSecondInnerStart}
-                        <a href="${studioHref}" class="ll-icon-btn ll-icon-btn--circle ll-icon-btn--outline">
-                            <span class="material-symbols-outlined ll-icon-btn__icon">construction</span>
-                        </a>
                         <div>
-                            <button id="create-dropdown-button" type="button" class="ll-icon-btn ll-icon-btn--circle ll-icon-btn--outline">
+                            <button id="create-dropdown-button" type="button" class="ll-icon-btn ll-icon-btn--sm">
                                 <span class="material-symbols-outlined ll-icon-btn__icon">add</span>
                             </button>
                             <div id="create-dropdown-menu" class="ll-dropdown__menu hidden">
                                 ${getCreateDropdownMarkup()}
                             </div>
                         </div>
-                        <div class="ll-border-divider"></div>
-                        <button type="button" class="ll-icon-btn ll-icon-btn--circle ll-icon-btn--outline" aria-label="Notifications">
+                        <a href="${studioHref}" class="ll-icon-btn ll-icon-btn--sm">
+                            <span class="material-symbols-outlined ll-icon-btn__icon">construction</span>
+                        </a>
+                        <button type="button" class="ll-icon-btn ll-icon-btn--sm" aria-label="Notifications">
                             <span class="material-symbols-outlined ll-icon-btn__icon">notifications</span>
                         </button>
                         <div>
-                            <button id="user-dropdown-button" type="button" class="ll-icon-btn ll-icon-btn--circle ll-icon-btn--outline ll-dropdown__trigger" aria-label="User menu">
-                                <span class="text-lg font-medium">${userInitial}</span>
+                            <button id="user-dropdown-button" type="button" class="ll-icon-btn ll-icon-btn--sm ll-dropdown__trigger" aria-label="User menu">
+                                <span class="material-symbols-outlined ll-icon-btn__icon">settings</span>
                             </button>
                             <div id="user-dropdown-menu" class="ll-dropdown__menu hidden">
                                 ${getUserDropdownMarkup()}
                             </div>
                         </div>
-                        <div class="ll-border-divider"></div>
                     </div>
                 `;
             }
@@ -907,12 +983,12 @@
             const briefingRoot = document.getElementById('index-briefings-list-root');
             if (briefingRoot && briefingRoot.dataset.listBound !== 'true') {
                 const briefingItems = [
-                    { id: 'briefing-operations-alert', title: 'Supply Chain Alert: Critical Component Shortage', workspaceName: 'Operations', meta: 'Operations · 2 hours ago', badge: 'Alert', thumbnailSrc: 'https://placehold.co/192x256/7f1d1d/ffffff?text=Briefing+Thumbnail' },
-                    { id: 'briefing-finance-report', title: 'Market Volatility Impact on Q3 Forecasts', workspaceName: 'Finance', meta: 'Finance · 1 day ago', badge: 'Report', thumbnailSrc: 'https://placehold.co/192x256/78350f/ffffff?text=Briefing+Thumbnail' },
-                    { id: 'briefing-hr-feedback', title: 'Employee Feedback: Key Takeaways & Action Plans', workspaceName: 'HR', meta: 'HR · 3 days ago', badge: 'Feedback', thumbnailSrc: 'https://placehold.co/192x256/065f46/ffffff?text=Briefing+Thumbnail' },
-                    { id: 'briefing-sales-report', title: 'Q1 Lead Generation: Performance & Strategy', workspaceName: 'Sales', meta: 'Sales · 4 days ago', badge: 'Report', thumbnailSrc: 'https://placehold.co/192x256/92400e/ffffff?text=Briefing+Thumbnail' },
-                    { id: 'briefing-it-update', title: 'System Upgrade: Upcoming Changes and Benefits', workspaceName: 'IT', meta: 'IT · 2 days ago', badge: 'Update', thumbnailSrc: 'https://placehold.co/192x256/1e3a8a/ffffff?text=Briefing+Thumbnail' },
-                    { id: 'briefing-marketing-report', title: 'Campaign Performance: Deep Dive into Q1 Results', workspaceName: 'Marketing', meta: 'Marketing · 4 days ago', badge: 'Report', thumbnailSrc: 'https://placehold.co/192x256/a16207/ffffff?text=Briefing+Thumbnail' }
+                    { id: 'briefing-operations-alert', title: 'Supply Chain Alert: Critical Component Shortage', workspaceName: 'Operations', meta: 'Operations · 2 hrs', badge: 'Alert', thumbnailSrc: 'https://placehold.co/192x256/7f1d1d/ffffff?text=Briefing+Thumbnail' },
+                    { id: 'briefing-finance-report', title: 'Market Volatility Impact on Q3 Forecasts', workspaceName: 'Finance', meta: 'Finance · 1 day', badge: 'Report', thumbnailSrc: 'https://placehold.co/192x256/78350f/ffffff?text=Briefing+Thumbnail' },
+                    { id: 'briefing-hr-feedback', title: 'Employee Feedback: Key Takeaways & Action Plans', workspaceName: 'HR', meta: 'HR · 3 days', badge: 'Feedback', thumbnailSrc: 'https://placehold.co/192x256/065f46/ffffff?text=Briefing+Thumbnail' },
+                    { id: 'briefing-sales-report', title: 'Q1 Lead Generation: Performance & Strategy', workspaceName: 'Sales', meta: 'Sales · 4 days', badge: 'Report', thumbnailSrc: 'https://placehold.co/192x256/92400e/ffffff?text=Briefing+Thumbnail' },
+                    { id: 'briefing-it-update', title: 'System Upgrade: Upcoming Changes and Benefits', workspaceName: 'IT', meta: 'IT · 2 days', badge: 'Update', thumbnailSrc: 'https://placehold.co/192x256/1e3a8a/ffffff?text=Briefing+Thumbnail' },
+                    { id: 'briefing-marketing-report', title: 'Campaign Performance: Deep Dive into Q1 Results', workspaceName: 'Marketing', meta: 'Marketing · 4 days', badge: 'Report', thumbnailSrc: 'https://placehold.co/192x256/a16207/ffffff?text=Briefing+Thumbnail' }
                 ];
                 briefingRoot.innerHTML = briefingItems.map((item, index) => {
                     const badgeLabel = String(item.badge || 'Briefing');
@@ -945,9 +1021,7 @@
                                         <div class="index-idea-briefing-type ${badgeToneClass}">${escapeHtml(badgeLabel)}</div>
                                         <div class="ll-list__item-heading">${escapeHtml(item.title)}</div>
                                         <div class="ll-list__item-subtext">${escapeHtml(ownerWorkspace)}</div>
-                                        <span class="ll-list__item-meta index-idea-briefing-meta">
-                                            <span class="ll-list__item-subtext ll-text-muted">${metaText}</span>
-                                        </span>
+                                        <div class="ll-list__item-subtext ll-text-muted-lighter">${metaText}</div>
                                     </div>
                                 </div>
                             </button>
@@ -1109,7 +1183,7 @@
                                             <button
                                                 id="${buttonId}"
                                                 type="button"
-                                                class="ll-icon-btn ll-icon-btn--sm ll-icon-btn--circle ll-icon-btn--outline"
+                                                class="ll-icon-btn ll-icon-btn--sm"
                                                 aria-label="Card actions">
                                                 <span class="material-symbols-outlined ll-icon-btn__icon">more_vert</span>
                                             </button>
@@ -1259,22 +1333,22 @@
         function setSidebarToggleVisualState(button, isOpen) {
             if (!button) return;
             button.setAttribute('aria-pressed', isOpen ? 'true' : 'false');
-            button.classList.toggle('ll-active', isOpen);
+            button.classList.toggle('index-idea-toggle-active', isOpen);
         }
 
         function initializeIndexIdeaLayoutToggles() {
             const briefingsSidebarShell = document.getElementById('index-briefings-sidebar-shell');
+            const briefingsToggleButton = document.getElementById('index-briefings-sidebar-toggle');
+            const briefingsToggleIcon = briefingsToggleButton && briefingsToggleButton.querySelector('.ll-icon-btn__icon');
+            const briefingsBackdrop = document.getElementById('index-briefings-backdrop');
             const aiChatSidebarShell = document.getElementById('index-ai-chat-sidebar-shell');
             const aiChatHost = document.getElementById('index-ai-chat-host');
             const aiChatWindow = document.getElementById('ai-chat-window');
-            if (!briefingsSidebarShell || !aiChatSidebarShell || !aiChatHost) return;
+            if (!briefingsSidebarShell || !briefingsToggleButton || !briefingsToggleIcon || !briefingsBackdrop || !aiChatSidebarShell || !aiChatHost) return;
 
             if (aiChatWindow && !aiChatHost.contains(aiChatWindow)) {
                 aiChatHost.appendChild(aiChatWindow);
             }
-
-            const briefingsToggleButton = document.getElementById('index-briefings-sidebar-toggle');
-            if (!briefingsToggleButton) return;
 
             const notificationsButton = document.querySelector('.ll-app-header__right button[aria-label="Notifications"]');
             const headerActionHost = notificationsButton && notificationsButton.parentElement;
@@ -1285,7 +1359,7 @@
                 aiToggleButton = document.createElement('button');
                 aiToggleButton.type = 'button';
                 aiToggleButton.id = 'index-ai-chat-sidebar-toggle';
-                aiToggleButton.className = 'll-icon-btn ll-icon-btn--circle ll-icon-btn--outline';
+                aiToggleButton.className = 'll-icon-btn ll-icon-btn--sm';
                 aiToggleButton.setAttribute('aria-label', 'Toggle AI Chat sidebar');
                 aiToggleButton.innerHTML = '<span class="material-symbols-outlined ll-icon-btn__icon">auto_awesome</span>';
             }
@@ -1298,16 +1372,19 @@
 
             const syncAiChatWindowWithSidebar = (shouldOpen, { focusOnOpen = false } = {}) => {
                 if (!aiChatWindow) return;
-                const isOpen = aiChatWindow.classList.contains('chat-window-open');
-                if (shouldOpen && !isOpen) {
-                    toggleChatWindowVisibility();
+                if (shouldOpen) {
+                    aiChatWindow.style.display = 'flex';
+                    aiChatWindow.classList.add('chat-window-open', 'is-minimal');
+                    aiChatWindow.classList.remove('is-fullscreen');
                     if (focusOnOpen && chatInput) {
                         chatInput.focus();
                     }
-                    return;
-                }
-                if (!shouldOpen && isOpen) {
-                    toggleChatWindowVisibility();
+                } else {
+                    aiChatWindow.classList.remove('chat-window-open', 'is-minimal', 'is-fullscreen', 'has-interactive-panel');
+                    aiPanelSeparator.classList.remove('is-active');
+                    aiPanelSeparator.classList.add('hidden');
+                    interactivePanel.classList.remove('is-active');
+                    aiChatWindow.style.display = 'none';
                 }
             };
 
@@ -1316,28 +1393,33 @@
                 setSidebarToggleVisualState(aiToggleButton, isChatSidebarOpen);
             };
 
-            const setBriefingsCompactState = (compact) => {
-                const isCompact = Boolean(compact);
-                briefingsSidebarShell.classList.toggle('is-open', true);
-                briefingsSidebarShell.classList.toggle('is-compact', isCompact);
-                briefingsSidebarShell.setAttribute('aria-hidden', 'false');
-                setSidebarToggleVisualState(briefingsToggleButton, isCompact);
+            const setBriefingsExpandedState = (isExpanded) => {
+                const expanded = Boolean(isExpanded);
+                briefingsSidebarShell.classList.toggle('is-expanded', expanded);
+                briefingsToggleButton.setAttribute('aria-pressed', expanded ? 'true' : 'false');
+                briefingsToggleIcon.textContent = expanded ? 'close' : 'notes';
+                briefingsBackdrop.classList.toggle('is-visible', expanded);
+                briefingsBackdrop.setAttribute('aria-hidden', expanded ? 'false' : 'true');
                 briefingsToggleButton.setAttribute(
                     'aria-label',
-                    isCompact ? 'Expand Latest Briefings sidebar' : 'Compact Latest Briefings sidebar'
+                    expanded ? 'Collapse Briefings sidebar' : 'Expand Briefings sidebar'
                 );
-                const icon = briefingsToggleButton.querySelector('.ll-icon-btn__icon');
-                if (icon) {
-                    icon.textContent = 'vertical_split';
-                }
+                document.body.classList.toggle('index-idea-briefings-expanded', expanded);
             };
 
             if (briefingsToggleButton.dataset.bound !== 'true') {
                 briefingsToggleButton.addEventListener('click', () => {
-                    const nextCompactState = !briefingsSidebarShell.classList.contains('is-compact');
-                    setBriefingsCompactState(nextCompactState);
+                    const nextExpandedState = !briefingsSidebarShell.classList.contains('is-expanded');
+                    setBriefingsExpandedState(nextExpandedState);
                 });
                 briefingsToggleButton.dataset.bound = 'true';
+            }
+
+            if (briefingsBackdrop.dataset.bound !== 'true') {
+                briefingsBackdrop.addEventListener('click', () => {
+                    setBriefingsExpandedState(false);
+                });
+                briefingsBackdrop.dataset.bound = 'true';
             }
 
             if (aiToggleButton.dataset.bound !== 'true') {
@@ -1359,7 +1441,7 @@
                 closeChatButton.dataset.indexIdeaBound = 'true';
             }
 
-            setBriefingsCompactState(false);
+            setBriefingsExpandedState(false);
             toggleSidebarShell(aiChatSidebarShell, true);
             syncAiChatWindowWithSidebar(true, { focusOnOpen: false });
             updateAiButtonStateFromWindow();
