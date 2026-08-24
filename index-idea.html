@@ -8,6 +8,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/tailwind.css">
     <link rel="stylesheet" href="css/styles.css">
+    <script>
+        (function seedIndexIdeaAiSidebarState() {
+            try {
+                const persistedState = window.localStorage.getItem('indexIdea.aiChatSidebarOpen');
+                if (persistedState === 'true' || persistedState === 'false') {
+                    document.documentElement.setAttribute('data-index-idea-ai-sidebar-open', persistedState);
+                }
+            } catch (error) {
+                // Ignore storage read failures during initial paint.
+            }
+        })();
+    </script>
     <style>
         #index-idea-shell {
             min-height: 100vh;
@@ -37,9 +49,22 @@
             transition: width 0.25s ease, flex-basis 0.25s ease;
         }
 
+        .index-idea-sidebar-shell--ai {
+            transition: none;
+        }
+
+        .index-idea-sidebar-shell--ai.index-idea-transition-ready {
+            transition: width 0.25s ease, flex-basis 0.25s ease;
+        }
+
         .index-idea-sidebar-shell--ai.is-open {
             width: 22rem;
             flex-basis: 22rem;
+        }
+
+        html[data-index-idea-ai-sidebar-open="false"] #index-ai-chat-sidebar-shell.index-idea-sidebar-shell--ai {
+            width: 0 !important;
+            flex-basis: 0 !important;
         }
 
         .index-idea-sidebar-container {
@@ -275,6 +300,33 @@
             min-width: 24rem;
         }
 
+        .index-idea-ai-show-btn {
+            position: fixed;
+            right: 1.5rem;
+            bottom: 1.5rem;
+            z-index: 45;
+            transform: translateX(0);
+            opacity: 1;
+            pointer-events: auto;
+            transition: none;
+        }
+
+        .index-idea-ai-show-btn.index-idea-transition-ready {
+            transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+
+        .index-idea-ai-show-btn.is-hidden {
+            transform: translateX(calc(100% + 1rem));
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        html[data-index-idea-ai-sidebar-open="false"] #index-ai-chat-show-button.index-idea-ai-show-btn.is-hidden {
+            transform: translateX(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
     </style>
 </head>
 <body>
@@ -448,6 +500,14 @@
             </div>
         </div>
     </div>
+    <button
+        type="button"
+        id="index-ai-chat-show-button"
+        class="ll-icon-btn ll-icon-btn--circle ll-icon-btn--circle-primary ll-icon-btn--lg index-idea-ai-show-btn is-hidden"
+        aria-label="Show AI Chat sidebar"
+        aria-hidden="true">
+        <span class="material-symbols-outlined ll-icon-btn__icon">auto_awesome</span>
+    </button>
 
     <script>
         // Local AI chat copy for index-idea experiments.
@@ -1330,12 +1390,6 @@
             }
         }
 
-        function setSidebarToggleVisualState(button, isOpen) {
-            if (!button) return;
-            button.setAttribute('aria-pressed', isOpen ? 'true' : 'false');
-            button.classList.toggle('index-idea-toggle-active', isOpen);
-        }
-
         function initializeIndexIdeaLayoutToggles() {
             const briefingsSidebarShell = document.getElementById('index-briefings-sidebar-shell');
             const briefingsToggleButton = document.getElementById('index-briefings-sidebar-toggle');
@@ -1343,27 +1397,15 @@
             const briefingsBackdrop = document.getElementById('index-briefings-backdrop');
             const aiChatSidebarShell = document.getElementById('index-ai-chat-sidebar-shell');
             const aiChatHost = document.getElementById('index-ai-chat-host');
+            const aiShowButton = document.getElementById('index-ai-chat-show-button');
             const aiChatWindow = document.getElementById('ai-chat-window');
-            if (!briefingsSidebarShell || !briefingsToggleButton || !briefingsToggleIcon || !briefingsBackdrop || !aiChatSidebarShell || !aiChatHost) return;
+            if (!briefingsSidebarShell || !briefingsToggleButton || !briefingsToggleIcon || !briefingsBackdrop || !aiChatSidebarShell || !aiChatHost || !aiShowButton) return;
+            const aiSidebarStateStorageKey = 'indexIdea.aiChatSidebarOpen';
+            let aiTransitionsReady = false;
 
             if (aiChatWindow && !aiChatHost.contains(aiChatWindow)) {
                 aiChatHost.appendChild(aiChatWindow);
             }
-
-            const notificationsButton = document.querySelector('.ll-app-header__right button[aria-label="Notifications"]');
-            const headerActionHost = notificationsButton && notificationsButton.parentElement;
-            if (!headerActionHost || !notificationsButton) return;
-
-            let aiToggleButton = document.getElementById('index-ai-chat-sidebar-toggle');
-            if (!aiToggleButton) {
-                aiToggleButton = document.createElement('button');
-                aiToggleButton.type = 'button';
-                aiToggleButton.id = 'index-ai-chat-sidebar-toggle';
-                aiToggleButton.className = 'll-icon-btn ll-icon-btn--sm';
-                aiToggleButton.setAttribute('aria-label', 'Toggle AI Chat sidebar');
-                aiToggleButton.innerHTML = '<span class="material-symbols-outlined ll-icon-btn__icon">auto_awesome</span>';
-            }
-            headerActionHost.appendChild(aiToggleButton);
 
             const toggleSidebarShell = (shell, shouldOpen) => {
                 shell.classList.toggle('is-open', shouldOpen);
@@ -1388,9 +1430,44 @@
                 }
             };
 
-            const updateAiButtonStateFromWindow = () => {
+            const updateAiShowButtonState = () => {
                 const isChatSidebarOpen = aiChatSidebarShell.classList.contains('is-open');
-                setSidebarToggleVisualState(aiToggleButton, isChatSidebarOpen);
+                aiShowButton.classList.toggle('is-hidden', isChatSidebarOpen);
+                aiShowButton.setAttribute('aria-hidden', isChatSidebarOpen ? 'true' : 'false');
+            };
+
+            const readAiSidebarOpenState = () => {
+                try {
+                    const persistedValue = window.localStorage.getItem(aiSidebarStateStorageKey);
+                    if (persistedValue == null) return null;
+                    return persistedValue === 'true';
+                } catch (error) {
+                    return null;
+                }
+            };
+
+            const writeAiSidebarOpenState = (isOpen) => {
+                try {
+                    window.localStorage.setItem(aiSidebarStateStorageKey, String(Boolean(isOpen)));
+                } catch (error) {
+                    // Ignore storage write failures (private mode, quota, etc.)
+                }
+            };
+
+            const setAiSidebarOpenState = (isOpen, { focusOnOpen = false } = {}) => {
+                const nextOpenState = Boolean(isOpen);
+                toggleSidebarShell(aiChatSidebarShell, nextOpenState);
+                syncAiChatWindowWithSidebar(nextOpenState, { focusOnOpen });
+                updateAiShowButtonState();
+                writeAiSidebarOpenState(nextOpenState);
+            };
+
+            const enableAiTransitions = () => {
+                if (aiTransitionsReady) return;
+                aiTransitionsReady = true;
+                aiChatSidebarShell.classList.add('index-idea-transition-ready');
+                aiShowButton.classList.add('index-idea-transition-ready');
+                document.documentElement.removeAttribute('data-index-idea-ai-sidebar-open');
             };
 
             const setBriefingsExpandedState = (isExpanded) => {
@@ -1422,29 +1499,28 @@
                 briefingsBackdrop.dataset.bound = 'true';
             }
 
-            if (aiToggleButton.dataset.bound !== 'true') {
-                aiToggleButton.addEventListener('click', () => {
-                    const nextState = !aiChatSidebarShell.classList.contains('is-open');
-                    toggleSidebarShell(aiChatSidebarShell, nextState);
-                    syncAiChatWindowWithSidebar(nextState, { focusOnOpen: true });
-                    setSidebarToggleVisualState(aiToggleButton, nextState);
+            if (aiShowButton.dataset.bound !== 'true') {
+                aiShowButton.addEventListener('click', () => {
+                    setAiSidebarOpenState(true, { focusOnOpen: true });
                 });
-                aiToggleButton.dataset.bound = 'true';
+                aiShowButton.dataset.bound = 'true';
             }
 
             const closeChatButton = document.getElementById('close-chat-button');
             if (closeChatButton && closeChatButton.dataset.indexIdeaBound !== 'true') {
                 closeChatButton.addEventListener('click', () => {
-                    toggleSidebarShell(aiChatSidebarShell, false);
-                    setSidebarToggleVisualState(aiToggleButton, false);
+                    setAiSidebarOpenState(false);
                 });
                 closeChatButton.dataset.indexIdeaBound = 'true';
             }
 
             setBriefingsExpandedState(false);
-            toggleSidebarShell(aiChatSidebarShell, true);
-            syncAiChatWindowWithSidebar(true, { focusOnOpen: false });
-            updateAiButtonStateFromWindow();
+            const persistedAiSidebarOpenState = readAiSidebarOpenState();
+            const initialAiSidebarOpenState = persistedAiSidebarOpenState == null ? true : persistedAiSidebarOpenState;
+            setAiSidebarOpenState(initialAiSidebarOpenState, { focusOnOpen: false });
+            requestAnimationFrame(() => {
+                requestAnimationFrame(enableAiTransitions);
+            });
         }
 
         // Update all slide cards with random sections on load
